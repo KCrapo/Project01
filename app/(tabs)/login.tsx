@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, View, TextInput, StyleSheet, Button, Alert, Dimensions, ImageBackground } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 import loginPic from '../../assets/images/loginPic2.jpg';
 
 export default function LoginScreen() {
@@ -8,10 +9,30 @@ export default function LoginScreen() {
   const [savedUsername, setSavedUsername] = useState('');
   const [savedPassword, setSavedPassword] = useState('');
 
-  const saveCredentials = () => {
-    setSavedUsername(username);
-    setSavedPassword(password);
-    Alert.alert('Saved', 'Your username and password have been saved.');
+  // Use effect to fetch saved credentials on component mount
+  useEffect(() => {
+    const fetchSavedCredentials = async () => {
+      const savedUser = await AsyncStorage.getItem('username');
+      const savedPass = await AsyncStorage.getItem('password');
+      if (savedUser && savedPass) {
+        setSavedUsername(savedUser);
+        setSavedPassword(savedPass);
+      }
+    };
+
+    fetchSavedCredentials();
+  }, []);
+
+  const saveCredentials = async () => {
+    try {
+      await AsyncStorage.setItem('username', username); // Save username in AsyncStorage
+      await AsyncStorage.setItem('password', password); // Save password in AsyncStorage
+      setSavedUsername(username);
+      setSavedPassword(password);
+      Alert.alert('Saved', 'Your username and password have been saved.');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save credentials');
+    }
   };
 
   const login = () => {
